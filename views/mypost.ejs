@@ -26,9 +26,9 @@
                     <img src=<%="./images/"+element.image %>>
                 <% } %>
                 <p><%= element.content %></p>
-                <a href="/like/<%= element._id %>">
-                    <%= (element.likes.indexOf(user._id)===-1)?"🤍":"❤️"%>
-                    <%= element.likes.length %>
+                <a href="#" class="like-toggle" data-id="<%= element._id %>">
+                <span class="heart"><%= (element.likes.includes(user._id)) ? "❤️" : "🤍" %></span>
+                <span class="count"><%= element.likes.length %></span>
                 </a>
                 <a href="/edit/<%=element._id %>">✏️</a>
                 <a href="/delete/<%=element._id%>">🗑</a>
