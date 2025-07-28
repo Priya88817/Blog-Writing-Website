@@ -37,3 +37,30 @@
     </div>
 </body>
 </html>
+<script>
+  document.querySelectorAll('.like-toggle').forEach(link => {
+    link.addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      const postId = link.getAttribute('data-id');
+
+      try {
+        const res = await fetch(`/like/${postId}`, {
+          method: 'POST'
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          const heart = link.querySelector('.heart');
+          const count = link.querySelector('.count');
+
+          heart.textContent = data.liked ? "❤️" : "🤍";
+          count.textContent = data.likeCount;
+        }
+      } catch (err) {
+        console.error("Toggle like failed", err);
+      }
+    });
+  });
+</script>
