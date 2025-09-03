@@ -43,39 +43,7 @@ app.get('/mypost',isLoggedin,async (req,res)=>{
 app.get('/profile',isLoggedin,async (req,res)=>{
     let user = await userModel.findOne({email:req.user.email});
     res.render('profile',{user});
-})
-app.post('/like/:id', isLoggedin, async (req, res) => {
-    try {
-        let post = await postModel.findOne({_id: req.params.id});
-
-        if (!post) {
-            return res.json({ success: false, message: "Post not found" });
-        }
-
-        let liked = false;
-
-        if (post.likes.indexOf(req.user.userid) === -1) {
-            // Add like
-            post.likes.push(req.user.userid);
-            liked = true;
-        } else {
-            // Remove like
-            let index = post.likes.indexOf(req.user.userid);
-            post.likes.splice(index, 1);
-        }
-
-        await post.save();
-
-        res.json({
-            success: true,
-            liked
-        });
-    } catch (err) {
-        console.error(err);
-        res.json({ success: false, message: "Server error" });
-    }
 });
-
 app.get('/edit/:id',isLoggedin,async (req,res)=>{
     let post = await postModel.findOne({_id:req.params.id});
     res.render("edit",{post});  
@@ -151,9 +119,7 @@ app.get('/like/:id', isLoggedin, async (req, res) => {
             let index = post.likes.indexOf(req.user.userid);
             post.likes.splice(index, 1);
         }
-
         await post.save();
-
         // return JSON so frontend can update
         res.json({
             success: true,
