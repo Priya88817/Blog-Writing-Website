@@ -68,8 +68,7 @@ app.post('/like/:id', isLoggedin, async (req, res) => {
 
         res.json({
             success: true,
-            liked,
-            likeCount: post.likes.length
+            liked
         });
     } catch (err) {
         console.error(err);
@@ -136,6 +135,37 @@ app.post('/post',isLoggedin,upload.single('postimage'),async (req,res)=>{
     //save krna hoga
     res.redirect('/mypost');
 });
+app.get('/like/:id', isLoggedin, async (req, res) => {
+    try {
+        let post = await postModel.findOne({_id: req.params.id});
+        if (!post) {
+            return res.json({ success: false, message: "Post not found" });
+        }
+
+        let liked = false;
+
+        if (post.likes.indexOf(req.user.userid) === -1) {
+            post.likes.push(req.user.userid);
+            liked = true;
+        } else {
+            let index = post.likes.indexOf(req.user.userid);
+            post.likes.splice(index, 1);
+        }
+
+        await post.save();
+
+        // return JSON so frontend can update
+        res.json({
+            success: true,
+            liked,
+            likesCount: post.likes.length
+        });
+    } catch (err) {
+        console.error(err);
+        res.json({ success: false, message: "Server error" });
+    }
+});
+
 app.post('/profileupload',isLoggedin,upload.single('profileimage'),async (req,res)=>{
     
     let user = await userModel.findOne({email:req.user.email});
