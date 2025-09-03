@@ -46,7 +46,7 @@
 
       try {
         const res = await fetch(`/like/${postId}`, {
-          method: 'POST'
+          method: 'GET'
         });
 
         const data = await res.json();
@@ -64,3 +64,4 @@
     });
   });
 </script>
+
