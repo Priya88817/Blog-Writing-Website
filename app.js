@@ -9,8 +9,6 @@ const jwt = require('jsonwebtoken');
 const upload = require('./config/multer');
 const fs = require('fs');
 
-
-
 app.set("view engine","ejs");
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
@@ -21,9 +19,11 @@ app.use(express.static(path.join(__dirname,'public')));
 app.get('/',(req,res)=>{
     res.render('index');
 });
-app.get('/login',(req,res)=>{
-    res.render('login');
+app.get("/login", (req, res) => {
+  const message = req.query.message || "";
+  res.render("login", { message });
 });
+
 app.get('/logout',(req,res)=>{
     res.cookie('token',"");
     res.redirect('/login');
@@ -44,20 +44,39 @@ app.get('/profile',isLoggedin,async (req,res)=>{
     let user = await userModel.findOne({email:req.user.email});
     res.render('profile',{user});
 })
-app.get('/like/:id',isLoggedin,async (req,res)=>{
-    let post = await postModel.findOne({_id:req.params.id});
-    if(post.likes.indexOf(req.user.userid) === -1)
-    {
-        post.likes.push(req.user.userid);
+app.post('/like/:id', isLoggedin, async (req, res) => {
+    try {
+        let post = await postModel.findOne({_id: req.params.id});
+
+        if (!post) {
+            return res.json({ success: false, message: "Post not found" });
+        }
+
+        let liked = false;
+
+        if (post.likes.indexOf(req.user.userid) === -1) {
+            // Add like
+            post.likes.push(req.user.userid);
+            liked = true;
+        } else {
+            // Remove like
+            let index = post.likes.indexOf(req.user.userid);
+            post.likes.splice(index, 1);
+        }
+
+        await post.save();
+
+        res.json({
+            success: true,
+            liked,
+            likeCount: post.likes.length
+        });
+    } catch (err) {
+        console.error(err);
+        res.json({ success: false, message: "Server error" });
     }
-    else
-    {
-        let index = post.likes.indexOf(req.user.userid);
-        post.likes.splice(index,1);
-    }
-    await post.save();
-    res.redirect('/home');
 });
+
 app.get('/edit/:id',isLoggedin,async (req,res)=>{
     let post = await postModel.findOne({_id:req.params.id});
     res.render("edit",{post});  
@@ -164,11 +183,11 @@ app.post('/login',async (req,res)=>{
     }
 });
 app.post('/register',async (req,res)=>{
-    let {name,username,email,password,age} = req.body;
+    let {username,email,password,age} = req.body;
     // check if email exist or not
     let user = await userModel.findOne({email:email});
     if(user)
-        return res.status(500).send("this email is already registered");
+       return res.redirect('/login?message=Email%20already%20registered');
 
     bcrypt.genSalt(10,(err,salt)=>{
         bcrypt.hash(password,salt,async (err,hash)=>{
